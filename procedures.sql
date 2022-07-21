@@ -44,3 +44,64 @@ close vc_cur;
 end;
 /
 show error;
+
+-- result by location
+
+
+create or replace procedure result_by_location (cid candidates.candidate_id%type)
+is
+cursor rl_cur is select vt.vote_center_id as voting_center, count(v.vote_id) as total_votes
+from vote v join voters vt on v.voter_id = vt.nid
+where v.candidate_id=cid
+group by vt.vote_center_id;
+rl rl_cur%ROWTYPE;
+begin
+open rl_cur;
+loop
+fetch rl_cur into rl;
+exit WHEN rl_cur%NOTFOUND;
+DBMS_OUTPUT.put_line('Voting Center:' || rl.voting_center || ' Total Votes:' || rl.total_votes);
+end loop;
+close rl_cur;
+end;
+/
+show error;
+
+-- vote
+
+create or replace procedure give_vote
+(cid vote.candidate_id%type, vid vote.voter_id%type) is
+begin
+insert into vote (voter_id, candidate_id) values (vid, cid);
+end;
+/
+
+-- winner
+create or replace function total_voter return number is
+tot_votes number;
+begin
+select count(vote_id) into tot_votes
+from vote;
+return tot_votes;
+end;
+/
+show error;
+
+
+
+create or replace procedure edu_record (cid candidate_education.candidate_id%type) is
+cursor ed_cur is select *from candidate_education where candidate_id=cid;
+ed ed_cur%ROWTYPE;
+
+begin
+DBMS_OUTPUT.put_line('Here is the educational record of candidate no. '||cid);
+open ed_cur;
+loop
+fetch ed_cur into ed;
+EXIT WHEN ed_cur%NOTFOUND;
+DBMS_OUTPUT.put_line('Level:' || ed.education_level || ' Year:' || ed.passing_year);
+end loop;
+close ed_cur;
+end;
+/
+show error;
